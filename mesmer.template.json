@@ -1,0 +1,157 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "zoneName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the DNS zone.  Must have at least 2 segements, e.g. hostname.org"
+      }
+    },
+    "customerName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the customer this instance is being deployed for."
+      }
+    },
+    "linuxFxVersion" : {
+      "type": "string",
+      "defaultValue" : "NODE|12-lts",
+      "metadata": {
+        "description": "The Runtime stack of current web app"
+      }
+    },
+        "administratorUsername": {
+      "type": "string"
+    },
+    "administratorPassword": {
+      "type": "securestring"
+    },
+    "skuCapacity": {
+      "defaultValue": 1,
+      "type": "int"
+    },
+    "skuFamily": {
+      "defaultValue": "Gen5",
+      "type": "string"
+    },
+    "skuName": {
+      "defaultValue": "B_Gen5_1",
+      "type": "string"
+    },
+    "skuSizeMB": {
+      "defaultValue": 51200,
+      "type": "int"
+    },
+    "skuTier": {
+      "defaultValue": "Basic",
+      "type": "string"
+    },
+    "version": {
+      "defaultValue": "10",
+      "type": "string"
+    },
+    "backupRetentionDays": {
+      "defaultValue": 7,
+      "type": "int"
+    },
+    "geoRedundantBackup": {
+      "type": "string",
+      "defaultValue": "Disabled"
+    },
+    "storageAutoGrow": {
+      "type": "string",
+      "defaultValue": "Disabled"
+    }
+  },
+  "variables": {
+    "webAppPortalName": "[concat(parameters('customerName'), '-mesmer-web-app')]",
+    "appServicePlanName": "[concat(parameters('customerName'), '-mesmer-service-plan')]",
+    "databaseName": "[concat(parameters('customerName'), '-db')]",
+    "serverName": "[concat(parameters('customerName'), '-postgres')]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Network/dnszones/CNAME",
+      "name": "[concat(parameters('zoneName'), '/', parameters('customerName'))]",
+      "apiVersion": "2016-04-01",
+      "location": "global",
+      "dependsOn": [],
+      "properties": {
+        "TTL": 3600,
+        "CNAMERecord": {
+          "cname": "[concat(parameters('customerName'), '-mesmer-web-app.azurewebsites.net')]"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Web/serverfarms",
+      "apiVersion": "2018-02-01",
+      "name": "[variables('appServicePlanName')]",
+      "location": "[resourceGroup().location]",
+      "sku": {
+        "Tier": "Basic",
+        "Name": "B1"
+      },
+      "kind": "linux",
+      "properties":{
+        "reserved":true
+      }
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2018-11-01",
+      "name": "[variables('webAppPortalName')]",
+      "location": "[resourceGroup().location]",
+      "kind": "app",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]"
+      ],
+      "properties": {
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
+        "siteConfig": {
+            "linuxFxVersion": "[parameters('linuxFxVersion')]"
+          }
+      }
+    },
+    {
+      "apiVersion": "2017-12-01",
+      "kind": "",
+      "location": "[resourceGroup().location]",
+      "name": "[variables('serverName')]",
+      "properties": {
+        "version": "[parameters('version')]",
+        "administratorLogin": "[parameters('administratorUsername')]",
+        "administratorLoginPassword": "[parameters('administratorPassword')]",
+        "storageProfile": {
+          "storageMB": "[parameters('skuSizeMB')]",
+          "backupRetentionDays": "[parameters('backupRetentionDays')]",
+          "geoRedundantBackup": "[parameters('geoRedundantBackup')]",
+          "storageAutoGrow": "[parameters('storageAutoGrow')]"
+        }
+      },
+      "sku": {
+        "name": "[parameters('skuName')]",
+        "tier": "[parameters('skuTier')]",
+        "capacity": "[parameters('skuCapacity')]",
+        "size": "[parameters('skuSizeMB')]",
+        "family": "[parameters('skuFamily')]"
+      },
+      "type": "Microsoft.DBforPostgreSQL/servers",
+      "resources": [
+        {
+          "type": "Microsoft.DBforPostgreSQL/servers/databases",
+          "apiversion": "2017-12-01",
+          "name": "[concat(variables('serverName'), '/', variables('databaseName'))]",
+          "dependsOn": [
+              "[resourceId('Microsoft.DBforPostgreSQL/servers', variables('serverName'))]"
+          ],
+          "properties": {
+              "charset": "UTF8",
+              "collation": "en_GB.UTF8"
+          }
+        }
+      ]
+    }
+  ]
+}
