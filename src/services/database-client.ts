@@ -2,7 +2,10 @@ import { Sequelize } from 'sequelize';
 
 const sequelize = new Sequelize(process.env['PGDATABASE'], process.env['PGUSER'], process.env['PGPASSWORD'], {
   host: process.env['PGHOST'],
-  dialect: 'postgres'
+  dialect: 'postgres',
+  dialectOptions: {
+    ssl: true
+  }
 });
 
 console.log('[DEV] Attempting to connect to database');
