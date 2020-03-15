@@ -89,10 +89,10 @@
     }
   },
   "variables": {
-    "webAppName": "[concat(parameters('customerName'), '-mesmer-web-app')]",
     "apiAppName": "[concat(parameters('customerName'), '-mesmer-api-app')]",
+    "pingLogicAppName": "[concat(parameters('customerName'), '-mesmer-ping-pong')]",
     "insightsName": "[concat(parameters('customerName'), '-mesmer-insights')]",
-    "appServicePlanName": "[concat(parameters('customerName'), '-mesmer-service-plan')]",
+    "appServicePlanName": "[concat(parameters('customerName'), '-mesmer-api-service-plan')]",
     "databaseName": "[concat(parameters('customerName'), '-mesmer-db')]",
     "serverName": "[concat(parameters('customerName'), '-mesmer-postgres')]"
   },
@@ -103,12 +103,68 @@
       "name": "[variables('appServicePlanName')]",
       "location": "[resourceGroup().location]",
       "sku": {
-        "Tier": "Standard",
-        "Name": "S1"
+        "Tier": "Basic",
+        "Name": "B1"
       },
       "kind": "linux",
-      "properties":{
-        "reserved":true
+      "properties": {
+        "reserved": true
+      }
+    },
+    {
+      "type": "Microsoft.Logic/workflows",
+      "apiVersion": "2017-07-01",
+      "name": "[variables('pingLogicAppName')]",
+      "location": "uksouth",
+      "properties": {
+        "state": "Enabled",
+        "definition": {
+          "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+          "contentVersion": "1.0.0.0",
+          "parameters": {
+            "mesmerBaseUrl": {
+              "defaultValue": "",
+              "type": "String"
+            },
+            "mesmerMasterKey": {
+              "defaultValue": "",
+              "type": "SecureString"
+            }
+          },
+          "triggers": {
+            "Recurrence": {
+              "recurrence": {
+                "frequency": "Minute",
+                "interval": 15
+              },
+              "type": "Recurrence"
+            }
+          },
+          "actions": {
+            "HTTP": {
+              "runAfter": {
+              },
+              "type": "Http",
+              "inputs": {
+                "headers": {
+                  "Authorization": "Master @{parameters('mesmerMasterKey')}"
+                },
+                "method": "POST",
+                "uri": "@{parameters('mesmerBaseUrl')}/tasks/uptime"
+              }
+            }
+          },
+          "outputs": {
+          }
+        },
+        "parameters": {
+          "mesmerBaseUrl": {
+              "value": "[concat('https://', variables('apiAppName'), '.azurewebsites.net/api')]"
+            },
+            "mesmerMasterKey": {
+              "value": "[parameters('administratorPassword')]"
+            }
+        }
       }
     },
     {
@@ -118,22 +174,6 @@
       "location": "[resourceGroup().location]",
       "properties": {
         "ApplicationId": "[variables('insightsName')]"
-      }
-    },
-    {
-      "type": "Microsoft.Web/sites",
-      "apiVersion": "2018-11-01",
-      "name": "[variables('webAppName')]",
-      "location": "[resourceGroup().location]",
-      "kind": "app",
-      "dependsOn": [
-        "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]"
-      ],
-      "properties": {
-        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
-        "siteConfig": {
-            "linuxFxVersion": "[parameters('linuxFxVersion')]"
-          }
       }
     },
     {
@@ -150,8 +190,8 @@
       "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
         "siteConfig": {
-            "linuxFxVersion": "[parameters('linuxFxVersion')]"
-          }
+          "linuxFxVersion": "[parameters('linuxFxVersion')]"
+        }
       },
       "resources": [
         {
@@ -175,6 +215,19 @@
             "TS_CLIENT_ID": "[parameters('tsClientId')]",
             "TS_TENANT_ID": "[parameters('tsTenantId')]",
             "TS_BASEURL": "[parameters('tsBaseUrl')]"
+          }
+        },
+        {
+          "type": "Microsoft.Web/sites/config",
+          "apiVersion": "2018-11-01",
+          "name": "[concat(variables('apiAppName'), '/web')]",
+          "location": "UK South",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/sites', variables('apiAppName'))]"
+          ],
+          "properties": {
+            "webSocketsEnabled": true,
+            "alwaysOn": true
           }
         }
       ]
@@ -209,24 +262,24 @@
           "apiversion": "2017-12-01",
           "name": "[concat(variables('serverName'), '/', variables('databaseName'))]",
           "dependsOn": [
-              "[resourceId('Microsoft.DBforPostgreSQL/servers', variables('serverName'))]"
+            "[resourceId('Microsoft.DBforPostgreSQL/servers', variables('serverName'))]"
           ],
           "properties": {
-              "charset": "UTF8",
-              "collation": "en_GB.UTF8"
+            "charset": "UTF8",
+            "collation": "en_GB.UTF8"
           }
         },
         {
-            "type": "Microsoft.DBforPostgreSQL/servers/firewallRules",
-            "apiVersion": "2017-12-01",
-            "name": "[concat(variables('serverName'), '/AllowAllWindowsAzureIps')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.DBforPostgreSQL/servers', variables('serverName'))]"
-            ],
-            "properties": {
-                "startIpAddress": "0.0.0.0",
-                "endIpAddress": "0.0.0.0"
-            }
+          "type": "Microsoft.DBforPostgreSQL/servers/firewallRules",
+          "apiVersion": "2017-12-01",
+          "name": "[concat(variables('serverName'), '/AllowAllWindowsAzureIps')]",
+          "dependsOn": [
+            "[resourceId('Microsoft.DBforPostgreSQL/servers', variables('serverName'))]"
+          ],
+          "properties": {
+            "startIpAddress": "0.0.0.0",
+            "endIpAddress": "0.0.0.0"
+          }
         }
       ]
     }
