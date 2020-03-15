@@ -1,0 +1,33 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "zoneName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the DNS zone.  Must have at least 2 segements, e.g. hostname.org"
+      }
+    },
+    "customerName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the customer this instance is being deployed for."
+      }
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Network/dnszones/CNAME",
+      "name": "[concat(parameters('zoneName'), '/', parameters('customerName'))]",
+      "apiVersion": "2016-04-01",
+      "location": "global",
+      "dependsOn": [],
+      "properties": {
+        "TTL": 3600,
+        "CNAMERecord": {
+          "cname": "[concat(parameters('customerName'), '-mesmer-api-app.azurewebsites.net')]"
+        }
+      }
+    }
+  ]
+}

@@ -9,8 +9,13 @@ import { cyan, white, bold } from 'chalk';
 
 import express from 'express';
 import { json } from 'body-parser';
+import cors from 'cors';
+import addWebsocket from 'express-ws';
+
 const app = express();
+addWebsocket(app);
 app.use(json());
+app.use(cors());
 
 app.get('/', (req, res, next) => {})
 
@@ -19,6 +24,15 @@ app.use('/api/projects', projectRouter);
 
 import environmentRouter from './routers/environment-router';
 app.use('/api/projects/', environmentRouter);
+
+import testRouter from './routers/test-router';
+app.use('/api/projects/', testRouter);
+
+import debugRouter from './routers/debug-router';
+app.use('/api/projects/', debugRouter);
+
+import proxyRouter from './routers/proxy-router';
+app.use('/api/proxy/', proxyRouter);
 
 console.log('[DEV] Express server starting...')
 app.listen(process.env.PORT, () => {

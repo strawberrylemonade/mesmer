@@ -6,13 +6,15 @@ import log from '../helpers/log';
 import { syncOptions } from '../helpers/options';
 import { getProject } from './project';
 
-interface IEnvironment {
+export interface IEnvironment {
   // Parent information
   project: string
 
   // Metadata
-  id: Number
+  id: string
+  environmentId: string
   name: string
+  connection: string
 }
 
 class Environment extends Model {}
@@ -22,6 +24,10 @@ Environment.init({
     type: DataTypes.STRING,
     allowNull: false,
     primaryKey: true
+  },
+  environmentId: {
+    type: DataTypes.STRING,
+    allowNull: false,
   },
   project: {
     type: DataTypes.STRING,
@@ -54,11 +60,12 @@ export const createEnvironment = async (projectId: string, environment: Partial<
 
   if (!projectId) throw new MissingParameterError('projectId');
   if (!environment.name) throw new MissingParameterError('name');
-  if (!environment.id) throw new MissingParameterError('id');
+  if (!environment.environmentId) throw new MissingParameterError('environmentId');
 
   // Confirm that project exists
   await getProject(projectId); // Throws a NotFoundError
   environment.project = projectId;
+  environment.id = `${projectId}-${environment.environmentId}`
 
   try {
     const response = await Environment.create(environment);
@@ -79,11 +86,11 @@ export const getEnvironments = async (projectId: string) => {
   }
 }
 
-export const getEnvironment = async (projectId: string, environmentId: string) => {
+export const getEnvironment = async (projectId: string, environmentId: string): Promise<IEnvironment> => {
   try {
-    const environment = await Environment.findOne({ where: { project: projectId, id: environmentId }})
+    const environment = await Environment.findOne({ where: { project: projectId, environmentId: environmentId }})
     if(!environment) throw new NotFoundError('This environment does not exist.');
-    return environment.toJSON();
+    return environment.toJSON() as IEnvironment;
   } catch (e) {
     log(e);
     // If it is a handled error (i.e. Not Found) just rethrow
@@ -94,7 +101,7 @@ export const getEnvironment = async (projectId: string, environmentId: string) =
 
 export const updateEnvironment = async (projectId: string, environmentId: string, candidateEnvironment: Partial<IEnvironment>) => {
   try {
-    const project = await Environment.findOne({ where: { project: projectId, id: environmentId } })
+    const project = await Environment.findOne({ where: { project: projectId, environmentId: environmentId } })
     await project.update(candidateEnvironment, { fields: ['name', 'connection'] })
     return project.toJSON();
   } catch (e) {

@@ -5,16 +5,20 @@ import { MissingParameterError, DatabaseError } from '../helpers/errors';
 import { syncOptions } from '../helpers/options';
 import log from '../helpers/log';
 
-interface IEvent {
+export interface IEvent {
   // Parent information
   project: string
   environment: string
 
   // Metadata
   id: Number,
-  name: string
   originalTimestamp: string
   debugSession?: string
+
+  // Content
+  type: string
+  name: string
+  state?: String
 
   // User Identity
   anonId: string
@@ -35,12 +39,20 @@ Event.init({
     type: DataTypes.STRING,
     allowNull: false
   },
+  type: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  state: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
   name: {
     type: DataTypes.STRING,
     allowNull: false
   },
   originalTimestamp: {
-    type: DataTypes.STRING,
+    type: DataTypes.DATE,
     allowNull: false
   },
   debugSession: {
@@ -74,7 +86,7 @@ Event.sync(syncOptions)
     process.exit(1);
   });
 
-export const createEvent = async (projectId: string, environmentId: string, event: Partial<IEvent>) => {
+export const createEvent = async (projectId: string, environmentId: string, event: IEvent) => {
 
   if (!environmentId) throw new MissingParameterError('environment');
   if (!projectId) throw new MissingParameterError('project');
@@ -82,6 +94,7 @@ export const createEvent = async (projectId: string, environmentId: string, even
   event.environment = environmentId;
   event.project = projectId;
 
+  if (!event.type) throw new MissingParameterError('type');
   if (!event.name) throw new MissingParameterError('name');
   if (!event.anonId) throw new MissingParameterError('anonId');
   if (!event.originalTimestamp) throw new MissingParameterError('originalTimestamp');

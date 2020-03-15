@@ -2,12 +2,6 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "zoneName": {
-      "type": "string",
-      "metadata": {
-        "description": "The name of the DNS zone.  Must have at least 2 segements, e.g. hostname.org"
-      }
-    },
     "customerName": {
       "type": "string",
       "metadata": {
@@ -21,77 +15,96 @@
         "description": "The Runtime stack of current web app"
       }
     },
-        "administratorUsername": {
+    "administratorUsername": {
       "type": "string"
     },
     "administratorPassword": {
       "type": "securestring"
     },
-    "skuCapacity": {
+    "mesmerWelknown": {
+      "type": "string",
+      "metadata": {
+        "description": "(Mesmer Login) The welknown endpoint of the AD Mesmer will authenticate against."
+      }
+    },
+    "mesmerAudience": {
+      "type": "string",
+      "metadata": {
+        "description": "(Mesmer Login) The audience of the AD App Mesmer will authenticate against."
+      }
+    },
+    "tsClientId": {
+      "type": "string",
+      "metadata": {
+        "description": "(TS Login) The client ID of the talksuite instance you want to connect to."
+      }
+    },
+    "tsTenantId": {
+      "type": "string",
+      "metadata": {
+        "description": "(TS Login) The tenant ID of the talksuite instance you want to connect to."
+      }
+    },
+    "tsBaseUrl": {
+      "type": "string",
+      "metadata": {
+        "description": "(TS Login) The base URL of the talksuite instance you want to connect to."
+      }
+    },
+    "dbSkuCapacity": {
       "defaultValue": 1,
       "type": "int"
     },
-    "skuFamily": {
+    "dbSkuFamily": {
       "defaultValue": "Gen5",
       "type": "string"
     },
-    "skuName": {
+    "dbSkuName": {
       "defaultValue": "B_Gen5_1",
       "type": "string"
     },
-    "skuSizeMB": {
+    "dbSkuSizeMB": {
       "defaultValue": 51200,
       "type": "int"
     },
-    "skuTier": {
+    "dbSkuTier": {
       "defaultValue": "Basic",
       "type": "string"
     },
-    "version": {
+    "dbVersion": {
       "defaultValue": "10",
       "type": "string"
     },
-    "backupRetentionDays": {
+    "dbBackupRetentionDays": {
       "defaultValue": 7,
       "type": "int"
     },
-    "geoRedundantBackup": {
+    "dbGeoRedundantBackup": {
       "type": "string",
       "defaultValue": "Disabled"
     },
-    "storageAutoGrow": {
+    "dbStorageAutoGrow": {
       "type": "string",
       "defaultValue": "Disabled"
     }
   },
   "variables": {
-    "webAppPortalName": "[concat(parameters('customerName'), '-mesmer-web-app')]",
+    "webAppName": "[concat(parameters('customerName'), '-mesmer-web-app')]",
+    "apiAppName": "[concat(parameters('customerName'), '-mesmer-api-app')]",
+    "insightsName": "[concat(parameters('customerName'), '-mesmer-insights')]",
     "appServicePlanName": "[concat(parameters('customerName'), '-mesmer-service-plan')]",
     "databaseName": "[concat(parameters('customerName'), '-db')]",
     "serverName": "[concat(parameters('customerName'), '-postgres')]"
   },
   "resources": [
     {
-      "type": "Microsoft.Network/dnszones/CNAME",
-      "name": "[concat(parameters('zoneName'), '/', parameters('customerName'))]",
-      "apiVersion": "2016-04-01",
-      "location": "global",
-      "dependsOn": [],
-      "properties": {
-        "TTL": 3600,
-        "CNAMERecord": {
-          "cname": "[concat(parameters('customerName'), '-mesmer-web-app.azurewebsites.net')]"
-        }
-      }
-    },
-    {
       "type": "Microsoft.Web/serverfarms",
       "apiVersion": "2018-02-01",
       "name": "[variables('appServicePlanName')]",
       "location": "[resourceGroup().location]",
       "sku": {
-        "Tier": "Basic",
-        "Name": "B1"
+        "Tier": "Standard",
+        "Name": "S1"
       },
       "kind": "linux",
       "properties":{
@@ -99,9 +112,18 @@
       }
     },
     {
+      "apiVersion": "2014-04-01",
+      "name": "[variables('insightsName')]",
+      "type": "Microsoft.Insights/components",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "ApplicationId": "[variables('insightsName')]"
+      }
+    },
+    {
       "type": "Microsoft.Web/sites",
       "apiVersion": "2018-11-01",
-      "name": "[variables('webAppPortalName')]",
+      "name": "[variables('webAppName')]",
       "location": "[resourceGroup().location]",
       "kind": "app",
       "dependsOn": [
@@ -115,27 +137,70 @@
       }
     },
     {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2018-11-01",
+      "name": "[variables('apiAppName')]",
+      "location": "[resourceGroup().location]",
+      "kind": "app",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
+        "[resourceId('Microsoft.Insights/components', variables('insightsName'))]",
+        "[resourceId('Microsoft.DBforPostgreSQL/servers', variables('serverName'))]"
+      ],
+      "properties": {
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
+        "siteConfig": {
+            "linuxFxVersion": "[parameters('linuxFxVersion')]"
+          }
+      },
+      "resources": [
+        {
+          "name": "appsettings",
+          "type": "config",
+          "apiVersion": "2015-08-01",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/sites', variables('apiAppName'))]"
+          ],
+          "tags": {
+            "displayName": "appsettings"
+          },
+          "properties": {
+            "PGUSER": "[parameters('administratorUsername')]",
+            "PGHOST": "[concat('', '.postgres.database.azure.com')]",
+            "PGPASSWORD": "[parameters('administratorPassword')]",
+            "PGDATABASE": "[variables('databaseName')]",
+            "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(resourceId('Microsoft.Insights/components', variables('insightsName'))).InstrumentationKey]",
+            "OPENID_CONFIG_URL": "[parameters('mesmerWelknown')]",
+            "OPENID_AUDIENCE": "[parameters('mesmerAudience')]",
+            "TS_CLIENT_ID": "[parameters('tsClientId')]",
+            "TS_TENANT_ID": "[parameters('tsTenantId')]",
+            "TS_BASEURL": "[parameters('tsBaseUrl')]"
+          }
+        }
+      ]
+    },
+    {
       "apiVersion": "2017-12-01",
       "kind": "",
       "location": "[resourceGroup().location]",
       "name": "[variables('serverName')]",
       "properties": {
-        "version": "[parameters('version')]",
+        "version": "[parameters('dbVersion')]",
         "administratorLogin": "[parameters('administratorUsername')]",
         "administratorLoginPassword": "[parameters('administratorPassword')]",
         "storageProfile": {
-          "storageMB": "[parameters('skuSizeMB')]",
-          "backupRetentionDays": "[parameters('backupRetentionDays')]",
-          "geoRedundantBackup": "[parameters('geoRedundantBackup')]",
-          "storageAutoGrow": "[parameters('storageAutoGrow')]"
+          "storageMB": "[parameters('dbSkuSizeMB')]",
+          "backupRetentionDays": "[parameters('dbBackupRetentionDays')]",
+          "geoRedundantBackup": "[parameters('dbGeoRedundantBackup')]",
+          "storageAutoGrow": "[parameters('dbStorageAutoGrow')]"
         }
       },
       "sku": {
-        "name": "[parameters('skuName')]",
-        "tier": "[parameters('skuTier')]",
-        "capacity": "[parameters('skuCapacity')]",
-        "size": "[parameters('skuSizeMB')]",
-        "family": "[parameters('skuFamily')]"
+        "name": "[parameters('dbSkuName')]",
+        "tier": "[parameters('dbSkuTier')]",
+        "capacity": "[parameters('dbSkuCapacity')]",
+        "size": "[parameters('dbSkuSizeMB')]",
+        "family": "[parameters('dbSkuFamily')]"
       },
       "type": "Microsoft.DBforPostgreSQL/servers",
       "resources": [

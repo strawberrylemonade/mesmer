@@ -1,14 +1,15 @@
 import { Router } from 'express';
 
 import { createEnvironment, getEnvironment, getEnvironments, updateEnvironment } from '../services/environment';
-import { getEnvironmentStatus, getTestDetails } from '../services/test';
+import { getEnvironmentStatus, getTestDetails, runTest } from '../services/test';
 import { createEvent, getEventsByDebugSession } from '../services/event';
 import { MissingParameterError } from '../helpers/errors';
+import { verifyAuth } from '../helpers/middleware';
 import log from '../helpers/log';
 
 const router = Router();
 
-router.get('/:projectId/environments/', async (req, res) => {
+router.get('/:projectId/environments/', verifyAuth, async (req, res) => {
   const projectId = req.params.projectId;
 
   try {
@@ -22,7 +23,7 @@ router.get('/:projectId/environments/', async (req, res) => {
   }
 })
 
-router.post('/:projectId/environments/', async (req, res) => {
+router.post('/:projectId/environments/', verifyAuth, async (req, res) => {
   const projectId = req.params.projectId;
   
   const partialEnvironment = req.body;
@@ -38,7 +39,7 @@ router.post('/:projectId/environments/', async (req, res) => {
   }
 })
 
-router.get('/:projectId/environments/:environmentId', async (req, res) => {
+router.get('/:projectId/environments/:environmentId', verifyAuth, async (req, res) => {
   const projectId = req.params.projectId;
   const environmentId = req.params.environmentId;
 
@@ -53,7 +54,7 @@ router.get('/:projectId/environments/:environmentId', async (req, res) => {
   }
 })
 
-router.put('/:projectId/environments/:environmentId', async (req, res) => {
+router.put('/:projectId/environments/:environmentId', verifyAuth, async (req, res) => {
   const projectId = req.params.projectId;
   const environmentId = req.params.environmentId;
 
@@ -70,7 +71,7 @@ router.put('/:projectId/environments/:environmentId', async (req, res) => {
   }
 })
 
-router.get('/:projectId/environments/:environmentId/status', async (req, res) => {
+router.get('/:projectId/environments/:environmentId/status', verifyAuth, async (req, res) => {
   const projectId = req.params.projectId;
   const environmentId = req.params.environmentId;
 
@@ -85,7 +86,22 @@ router.get('/:projectId/environments/:environmentId/status', async (req, res) =>
   }
 })
 
-router.get('/:projectId/environments/:environmentId/tests/:testId', async (req, res) => {
+router.post('/:projectId/environments/:environmentId/tests', verifyAuth, async (req, res) => {
+  const projectId = req.params.projectId;
+  const environmentId = req.params.environmentId;
+  
+  try {
+    const report = await runTest(projectId, environmentId, req.body);
+    res.status(200);
+    res.json(report);
+  } catch (e) {
+    log(e);
+    res.status(e.code);
+    res.json(e.toJSON());
+  }
+})
+
+router.get('/:projectId/environments/:environmentId/tests/:testId', verifyAuth, async (req, res) => {
   const projectId = req.params.projectId;
   const environmentId = req.params.environmentId;
   const testId = req.params.testId;
@@ -97,40 +113,6 @@ router.get('/:projectId/environments/:environmentId/tests/:testId', async (req, 
   } catch (e) {
     log(e);
     res.status(e.code);
-    res.json(e.toJSON());
-  }
-})
-
-router.get('/:projectId/environments/:environmentId/events', async (req, res) => {
-  const projectId = req.params.projectId;
-  const environmentId = req.params.environmentId;
-  const debugId = req.query.debugId;
-
-  try {
-    if(!debugId) throw new MissingParameterError('debugId');
-    const events = await getEventsByDebugSession(projectId, environmentId, debugId);
-
-    res.status(200);
-    res.json(events);
-  } catch (e) {
-    log(e);
-    res.status(e.code)
-    res.json(e.toJSON());
-  }
-})
-
-router.post('/:projectId/environments/:environmentId/events', async (req, res) => {
-  const projectId = req.params.projectId;
-  const environmentId = req.params.environmentId;
-  const event = req.body;
-
-  try {
-    let response = await createEvent(projectId, environmentId, event);
-    res.status(201);
-    res.json(response);
-  } catch (e) {
-    log(e);
-    res.status(e.code)
     res.json(e.toJSON());
   }
 })

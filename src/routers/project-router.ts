@@ -2,10 +2,11 @@ import { Router } from 'express';
 
 import { createProject, getProject, getProjects, updateProject } from '../services/project';
 import log from '../helpers/log';
+import { verifyAuth } from '../helpers/middleware';
 
 const router = Router();
 
-router.get('/', async (req, res) => {
+router.get('/', verifyAuth, async (req, res) => {
   try {
     const projects = await getProjects();
     res.status(200);
@@ -17,7 +18,7 @@ router.get('/', async (req, res) => {
   }
 })
 
-router.post('/', async (req, res) => {
+router.post('/', verifyAuth, async (req, res) => {
   const newProject = req.body;
 
   try {
@@ -31,7 +32,7 @@ router.post('/', async (req, res) => {
   }
 })
 
-router.get('/:projectId', async (req, res) => {
+router.get('/:projectId', verifyAuth, async (req, res) => {
   const projectId = req.params.projectId;
 
   try {
@@ -45,7 +46,7 @@ router.get('/:projectId', async (req, res) => {
   }
 })
 
-router.put('/:projectId', async (req, res) => {
+router.put('/:projectId', verifyAuth, async (req, res) => {
   const projectId = req.params.projectId;
 
   const partialProject = req.body;

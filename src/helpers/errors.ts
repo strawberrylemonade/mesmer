@@ -1,6 +1,6 @@
 export class CustomError extends Error {
   type: string
-  code: Number
+  code: number
 
   toJSON() {
     return {
@@ -15,7 +15,7 @@ export class MissingParameterError extends CustomError {
 
   constructor(missingParam: string) {
 
-    super('Required parameters not supplied.')
+    super(`Required parameters not supplied: ${missingParam}.`)
     this.param = missingParam
     this.type = 'MissingParameterError';
     this.code = 400;
@@ -38,11 +38,35 @@ export class ProcessError extends CustomError {
   }
 }
 
+export class BadRequestError extends CustomError {
+  constructor(message: string) {
+    super(message)
+    this.type = 'BadRequestError';
+    this.code = 400;
+  }
+}
+
+export class NotAuthorisedError extends CustomError {
+  constructor(message: string) {
+    super(message)
+    this.type = 'NotAuthorisedError';
+    this.code = 401;
+  }
+}
+
 export class NotFoundError extends CustomError {
   constructor(message: string) {
     super(message)
     this.type = 'NotFoundError';
     this.code = 404;
+  }
+}
+
+export class NoMatchError extends CustomError {
+  constructor(message: string) {
+    super(message)
+    this.type = 'NoMatchError';
+    this.code = 400;
   }
 }
 
