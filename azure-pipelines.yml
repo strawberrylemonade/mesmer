@@ -20,6 +20,9 @@ steps:
 - script: |
     npm run build
   displayName: '[NPM] Building API'
+- script: |
+    cp ./node_modules ./dist/node_modules
+  displayName: '[NPM] Copying dependencies to build'
 - task: ArchiveFiles@2
   inputs:
     rootFolderOrFile: './dist'
