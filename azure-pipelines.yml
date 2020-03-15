@@ -35,3 +35,25 @@ steps:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
     ArtifactName: 'drop'
     publishLocation: 'Container'
+  displayName: '[Artifact] Zipping build directory'
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+    ArtifactName: 'drop'
+    publishLocation: 'Container'
+  displayName: '[Artifact] Publishing build artifact'
+- task: ArchiveFiles@2
+  inputs:
+    rootFolderOrFile: './templates'
+    includeRootFolder: false
+    archiveType: 'zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/templates.zip'
+    replaceExistingArchive: true
+  displayName: '[Artifact] Zipping templates'
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)/templates.zip'
+    ArtifactName: 'templates'
+    publishLocation: 'Container'
+  displayName: '[Artifact] Publishing templates artifact'
+
