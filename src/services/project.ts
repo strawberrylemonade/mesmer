@@ -6,7 +6,7 @@ import log from '../helpers/log';
 import { syncOptions } from '../helpers/options';
 
 
-interface IProject {
+export interface IProject {
   // Metadata
   id: string
   name: string
@@ -72,7 +72,7 @@ export const getProject = async (projectId: string) => {
 export const getProjects = async () => {
   try {
     const projects = await Project.findAll();
-    return projects.map(res => res.toJSON());
+    return projects.map(res => res.toJSON()) as IProject[];
   } catch (e) {
     log(e);
     throw new DatabaseError('Could not get projects.')

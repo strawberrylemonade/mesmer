@@ -31,8 +31,17 @@ app.use('/api/projects/', testRouter);
 import debugRouter from './routers/debug-router';
 app.use('/api/projects/', debugRouter);
 
+import reportRouter from './routers/report-router';
+app.use('/api/projects/', reportRouter);
+
 import proxyRouter from './routers/proxy-router';
 app.use('/api/proxy/', proxyRouter);
+
+import tasksRouter from './routers/tasks-router';
+app.use('/api/tasks/', tasksRouter);
+
+import slackRouter from './routers/slack-router';
+app.use('/api/slack/', slackRouter);
 
 console.log('[DEV] Express server starting...')
 app.listen(process.env.PORT, () => {

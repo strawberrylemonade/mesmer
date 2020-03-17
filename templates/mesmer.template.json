@@ -103,8 +103,8 @@
       "name": "[variables('appServicePlanName')]",
       "location": "[resourceGroup().location]",
       "sku": {
-        "Tier": "Basic",
-        "Name": "B1"
+        "Tier": "Standard",
+        "Name": "S1"
       },
       "kind": "linux",
       "properties": {

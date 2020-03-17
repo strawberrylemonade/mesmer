@@ -9,7 +9,7 @@ import { syncOptions } from '../helpers/options';
 import { resolveDiscovery, createConversation, sendMessage, waitForResponse, setUpDebugSession } from '../helpers/directline';
 import log from '../helpers/log';
 import { getProject } from './project';
-import { Report, StepReport } from './report';
+import { TestReport, StepReport } from './report';
 
 export interface ITest {
   // Parent information
@@ -85,6 +85,20 @@ export const getTest = async (projectId: string, testId: string) => {
 
 }
 
+export const getTestById = async (id: string) => {
+  try {
+    const test = await Test.findOne({ where: { id }})
+    if(!test) throw new NotFoundError('This test does not exist.');
+    return test.toJSON() as ITest;
+  } catch (e) {
+    log(e);
+    // If it is a handled error (i.e. Not Found) just rethrow
+    if(e instanceof CustomError) throw e;
+    // Else throw a custom database error
+  }
+
+}
+
 export const getTests = async (projectId: string) => {
   try {
     const tests = await Test.findAll({ where: { project: projectId }})
@@ -137,8 +151,6 @@ export const getTestDetails = async (projectId: string, environmentId: string, t
 }
 
 export const runTest = async (projectId: string, environmentId: string, test: ITest) => {
-
-
   const { connection } = await getEnvironment(projectId, environmentId);
   if (!connection) throw new NotFoundError('This environment does not have any connection details associating it with a bot.');
 
@@ -146,7 +158,7 @@ export const runTest = async (projectId: string, environmentId: string, test: IT
   const conversation = await createConversation(discovery);
   const debugSession = await setUpDebugSession(conversation, projectId, environmentId); 
 
-  const report = new Report(projectId, environmentId, test, debugSession.id);
+  const report = new TestReport(projectId, environmentId, test, debugSession.id);
   report.start()
 
   for (const step of test.steps) {
@@ -171,7 +183,7 @@ export const runTest = async (projectId: string, environmentId: string, test: IT
   }
 
   report.stop()
-  return report.toJSON();
+  return await report.create();
 }
 
 interface ISendAndWaitStep {
