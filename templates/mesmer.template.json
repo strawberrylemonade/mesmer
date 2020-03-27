@@ -148,8 +148,7 @@
       "kind": "app",
       "dependsOn": [
         "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
-        "[resourceId('Microsoft.Insights/components', variables('insightsName'))]",
-        "[resourceId(subscription().SubscriptionId, resourceGroup().name, 'Microsoft.DBforPostgreSQL/servers', variables('serverName'))]"
+        "[resourceId('Microsoft.Insights/components', variables('insightsName'))]"
       ],
       "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
