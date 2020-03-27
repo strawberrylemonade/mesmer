@@ -50,42 +50,6 @@
       "metadata": {
         "description": "(TS Login) The base URL of the talksuite instance you want to connect to."
       }
-    },
-    "dbSkuCapacity": {
-      "defaultValue": 1,
-      "type": "int"
-    },
-    "dbSkuFamily": {
-      "defaultValue": "Gen5",
-      "type": "string"
-    },
-    "dbSkuName": {
-      "defaultValue": "B_Gen5_1",
-      "type": "string"
-    },
-    "dbSkuSizeMB": {
-      "defaultValue": 51200,
-      "type": "int"
-    },
-    "dbSkuTier": {
-      "defaultValue": "Basic",
-      "type": "string"
-    },
-    "dbVersion": {
-      "defaultValue": "10",
-      "type": "string"
-    },
-    "dbBackupRetentionDays": {
-      "defaultValue": 7,
-      "type": "int"
-    },
-    "dbGeoRedundantBackup": {
-      "type": "string",
-      "defaultValue": "Disabled"
-    },
-    "dbStorageAutoGrow": {
-      "type": "string",
-      "defaultValue": "Disabled"
     }
   },
   "variables": {
@@ -228,57 +192,6 @@
           "properties": {
             "webSocketsEnabled": true,
             "alwaysOn": true
-          }
-        }
-      ]
-    },
-    {
-      "apiVersion": "2017-12-01",
-      "kind": "",
-      "location": "[resourceGroup().location]",
-      "name": "[variables('serverName')]",
-      "properties": {
-        "version": "[parameters('dbVersion')]",
-        "administratorLogin": "[parameters('administratorUsername')]",
-        "administratorLoginPassword": "[parameters('administratorPassword')]",
-        "storageProfile": {
-          "storageMB": "[parameters('dbSkuSizeMB')]",
-          "backupRetentionDays": "[parameters('dbBackupRetentionDays')]",
-          "geoRedundantBackup": "[parameters('dbGeoRedundantBackup')]",
-          "storageAutoGrow": "[parameters('dbStorageAutoGrow')]"
-        }
-      },
-      "sku": {
-        "name": "[parameters('dbSkuName')]",
-        "tier": "[parameters('dbSkuTier')]",
-        "capacity": "[parameters('dbSkuCapacity')]",
-        "size": "[parameters('dbSkuSizeMB')]",
-        "family": "[parameters('dbSkuFamily')]"
-      },
-      "type": "Microsoft.DBforPostgreSQL/servers",
-      "resources": [
-        {
-          "type": "Microsoft.DBforPostgreSQL/servers/databases",
-          "apiversion": "2017-12-01",
-          "name": "[concat(variables('serverName'), '/', variables('databaseName'))]",
-          "dependsOn": [
-            "[resourceId('Microsoft.DBforPostgreSQL/servers', variables('serverName'))]"
-          ],
-          "properties": {
-            "charset": "UTF8",
-            "collation": "en_GB.UTF8"
-          }
-        },
-        {
-          "type": "Microsoft.DBforPostgreSQL/servers/firewallRules",
-          "apiVersion": "2017-12-01",
-          "name": "[concat(variables('serverName'), '/AllowAllWindowsAzureIps')]",
-          "dependsOn": [
-            "[resourceId('Microsoft.DBforPostgreSQL/servers', variables('serverName'))]"
-          ],
-          "properties": {
-            "startIpAddress": "0.0.0.0",
-            "endIpAddress": "0.0.0.0"
           }
         }
       ]

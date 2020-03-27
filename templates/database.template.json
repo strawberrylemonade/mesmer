@@ -1,0 +1,92 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "customerName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the customer this instance is being deployed for."
+      }
+    },
+    "administratorUsername": {
+      "type": "string"
+    },
+    "administratorPassword": {
+      "type": "securestring"
+    },
+    "dbExists": {
+      "type": "string"
+    }
+  },
+  "variables": {
+    "databaseName": "[concat(parameters('customerName'), '-mesmer-db')]",
+    "metabaseNameDatabaseName": "[concat(parameters('customerName'), '-mesmer-mb-db')]",
+    "serverName": "[concat(parameters('customerName'), '-mesmer-postgres')]"
+  },
+  "resources": [
+    {
+      "condition": "[equals(parameters('dbExists'), 'false')]",
+      "apiVersion": "2017-12-01",
+      "kind": "",
+      "location": "[resourceGroup().location]",
+      "name": "[variables('serverName')]",
+      "properties": {
+        "version": "10",
+        "administratorLogin": "[parameters('administratorUsername')]",
+        "administratorLoginPassword": "[parameters('administratorPassword')]",
+        "storageProfile": {
+          "storageMB": 51200,
+          "backupRetentionDays": 7,
+          "geoRedundantBackup": "Disabled",
+          "storageAutoGrow": "Disabled"
+        }
+      },
+      "sku": {
+        "name": "B_Gen5_1",
+        "tier": "Basic",
+        "capacity": 1,
+        "size": 51200,
+        "family": "Gen5"
+      },
+      "type": "Microsoft.DBforPostgreSQL/servers",
+      "resources": [
+        {
+          "type": "Microsoft.DBforPostgreSQL/servers/databases",
+          "apiversion": "2017-12-01",
+          "name": "[concat(variables('serverName'), '/', variables('metabaseNameDatabaseName'))]",
+          "dependsOn": [
+            "[resourceId('Microsoft.DBforPostgreSQL/servers', variables('serverName'))]"
+          ],
+          "properties": {
+            "charset": "UTF8",
+            "collation": "en_GB.UTF8"
+          }
+        },
+        {
+          "type": "Microsoft.DBforPostgreSQL/servers/databases",
+          "apiversion": "2017-12-01",
+          "name": "[concat(variables('serverName'), '/', variables('databaseName'))]",
+          "dependsOn": [
+            "[resourceId('Microsoft.DBforPostgreSQL/servers', variables('serverName'))]"
+          ],
+          "properties": {
+            "charset": "UTF8",
+            "collation": "en_GB.UTF8"
+          }
+        },
+        {
+          "type": "Microsoft.DBforPostgreSQL/servers/firewallRules",
+          "apiVersion": "2017-12-01",
+          "name": "[concat(variables('serverName'), '/AllowAllWindowsAzureIps')]",
+          "dependsOn": [
+            "[resourceId('Microsoft.DBforPostgreSQL/servers', variables('serverName'))]"
+          ],
+          "properties": {
+            "startIpAddress": "0.0.0.0",
+            "endIpAddress": "0.0.0.0"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "customerName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the customer this instance is being deployed for."
+      }
+    },
+    "administratorUsername": {
+      "type": "string"
+    },
+    "administratorPassword": {
+      "type": "securestring"
+    }
+  },
+  "variables": {
+    "appServicePlanName": "[concat(parameters('customerName'), '-mesmer-api-service-plan')]",
+    "metabaseName": "[concat(parameters('customerName'), '-mesmer-metabase')]",
+    "metabaseNameDatabaseName": "[concat(parameters('customerName'), '-mesmer-mb-db')]",
+    "serverName": "[concat(parameters('customerName'), '-mesmer-postgres')]"
+  },
+  "resources": [
+    {
+      "apiVersion": "2016-08-01",
+      "type": "Microsoft.Web/sites",
+      "name": "[variables('metabaseName')]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "siteConfig": {
+          "name": "[variables('metabaseName')]",
+          "appSettings": [
+            {
+              "name": "MB_DB_TYPE",
+              "value": "postgres"
+            },
+            {
+              "name": "MB_DB_DBNAME",
+              "value": "[variables('metabaseNameDatabaseName')]"
+            },
+            {
+              "name": "MB_DB_PORT",
+              "value": "5432"
+            },
+            {
+              "name": "MB_DB_USER",
+              "value": "[concat(parameters('administratorUsername'), '@', variables('serverName'), '.postgres.database.azure.com')]"
+            },
+            {
+              "name": "MB_DB_PASS",
+              "value": "[parameters('administratorPassword')]"
+            },
+            {
+              "name": "MB_DB_HOST",
+              "value": "[concat(variables('serverName'), '.postgres.database.azure.com')]"
+            }
+          ],
+          "linuxFxVersion": "DOCKER|metabase/metabase"
+        },
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]"
+      ]
+    }
+  ]
+}

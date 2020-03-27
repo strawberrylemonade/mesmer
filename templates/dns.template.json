@@ -28,6 +28,19 @@
           "cname": "[concat(parameters('customerName'), '-mesmer-api-app.azurewebsites.net')]"
         }
       }
+    },
+    {
+      "type": "Microsoft.Network/dnszones/CNAME",
+      "name": "[concat(parameters('zoneName'), '/', concat('analytics.', parameters('customerName')))]",
+      "apiVersion": "2016-04-01",
+      "location": "global",
+      "dependsOn": [],
+      "properties": {
+        "TTL": 3600,
+        "CNAMERecord": {
+          "cname": "[concat(parameters('customerName'), '-mesmer-metabase.azurewebsites.net')]"
+        }
+      }
     }
   ]
 }
