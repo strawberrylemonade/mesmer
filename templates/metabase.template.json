@@ -16,12 +16,26 @@
     }
   },
   "variables": {
-    "appServicePlanName": "[concat(parameters('customerName'), '-mesmer-api-service-plan')]",
+    "appServicePlanName": "[concat(parameters('customerName'), '-mesmer-mb-service-plan')]",
     "metabaseName": "[concat(parameters('customerName'), '-mesmer-metabase')]",
     "metabaseNameDatabaseName": "[concat(parameters('customerName'), '-mesmer-mb-db')]",
     "serverName": "[concat(parameters('customerName'), '-mesmer-postgres')]"
   },
   "resources": [
+    {
+      "type": "Microsoft.Web/serverfarms",
+      "apiVersion": "2018-02-01",
+      "name": "[variables('appServicePlanName')]",
+      "location": "[resourceGroup().location]",
+      "sku": {
+        "Tier": "Standard",
+        "Name": "S1"
+      },
+      "kind": "linux",
+      "properties": {
+        "reserved": true
+      }
+    },
     {
       "apiVersion": "2016-08-01",
       "type": "Microsoft.Web/sites",
@@ -58,7 +72,7 @@
           ],
           "linuxFxVersion": "DOCKER|metabase/metabase"
         },
-        "serverFarmId": "[resourceId(subscription().SubscriptionId, resourceGroup().name, 'Microsoft.Web/serverfarms', variables('appServicePlanName'))]"
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]"
       },
       "dependsOn": [
         "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]"
