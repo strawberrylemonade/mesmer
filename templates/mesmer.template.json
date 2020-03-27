@@ -149,7 +149,7 @@
       "dependsOn": [
         "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
         "[resourceId('Microsoft.Insights/components', variables('insightsName'))]",
-        "[resourceId('Microsoft.DBforPostgreSQL/servers', variables('serverName'))]"
+        "[resourceId(subscription().SubscriptionId, resourceGroup().name, 'Microsoft.DBforPostgreSQL/servers', variables('serverName'))]"
       ],
       "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
