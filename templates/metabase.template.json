@@ -58,7 +58,7 @@
           ],
           "linuxFxVersion": "DOCKER|metabase/metabase"
         },
-        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]"
+        "serverFarmId": "[resourceId(subscription().SubscriptionId, resourceGroup().name, 'Microsoft.Web/serverfarms', variables('appServicePlanName'))]"
       },
       "dependsOn": [
         "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]"
