@@ -185,7 +185,7 @@ export const getReport = async (projectId: string, environmentId: string, report
   const report =  response.toJSON() as IReport;
 
   const events = await getEventsByDebugSession(projectId, environmentId, report.debugSession) as IEvent[];
-  report.events = events.reverse();
+  report.events = events;
   return report;
 }
 
@@ -193,16 +193,20 @@ export const getRecentReport = async (projectId: string, environmentId: string) 
   if (!environmentId) throw new MissingParameterError('environment');
   if (!projectId) throw new MissingParameterError('project');
 
-  const response = await Report.findOne({ where: { environment: environmentId, project: projectId } });
+  const response = await Report.findOne({ where: { environment: environmentId, project: projectId }, order: [['createdAt', 'DESC']] });
   if(!response) throw new NotFoundError('This report does not exist.');
-  return response.toJSON() as IReport;
+  const report = response.toJSON() as IReport;
+  
+  const events = await getEventsByDebugSession(projectId, environmentId, report.debugSession) as IEvent[];
+  report.events = events;
+  return report;
 }
 
 export const getRecentReports = async (projectId: string, environmentId: string) => {
   if (!environmentId) throw new MissingParameterError('environment');
   if (!projectId) throw new MissingParameterError('project');
 
-  const response = await Report.findAll({ where: { environment: environmentId, project: projectId, createdAt: { [Op.lt]: new Date(), [Op.gt]: new Date().setTime(new Date().getTime() - 24 * 60 * 60 * 1000) }}, limit: 40 });
+  const response = await Report.findAll({ where: { environment: environmentId, project: projectId, createdAt: { [Op.lt]: new Date(), [Op.gt]: new Date().setTime(new Date().getTime() - 24 * 60 * 60 * 1000) }}, limit: 40, order: [['createdAt', 'DESC']] });
   if(!response) throw new NotFoundError('These reports do not exist.');
   return response.map(res => res.toJSON()).reverse() as IReport[];
 }

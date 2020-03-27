@@ -146,12 +146,9 @@
       "name": "[variables('apiAppName')]",
       "location": "[resourceGroup().location]",
       "kind": "app",
-      "dependsOn": [
-        "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
-        "[resourceId('Microsoft.Insights/components', variables('insightsName'))]"
-      ],
+      "dependsOn": [],
       "properties": {
-        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
+        "serverFarmId": "[resourceId(subscription().SubscriptionId, resourceGroup().name,'Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
         "siteConfig": {
           "linuxFxVersion": "[parameters('linuxFxVersion')]"
         }
