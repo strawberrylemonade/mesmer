@@ -51,6 +51,7 @@
       "type": "Microsoft.DBforPostgreSQL/servers",
       "resources": [
         {
+          "condition": "[equals(parameters('dbExists'), 'false')]",
           "type": "Microsoft.DBforPostgreSQL/servers/databases",
           "apiversion": "2017-12-01",
           "name": "[concat(variables('serverName'), '/', variables('metabaseNameDatabaseName'))]",
@@ -63,6 +64,7 @@
           }
         },
         {
+          "condition": "[equals(parameters('dbExists'), 'false')]",
           "type": "Microsoft.DBforPostgreSQL/servers/databases",
           "apiversion": "2017-12-01",
           "name": "[concat(variables('serverName'), '/', variables('databaseName'))]",
@@ -75,6 +77,7 @@
           }
         },
         {
+          "condition": "[equals(parameters('dbExists'), 'false')]",
           "type": "Microsoft.DBforPostgreSQL/servers/firewallRules",
           "apiVersion": "2017-12-01",
           "name": "[concat(variables('serverName'), '/AllowAllWindowsAzureIps')]",
