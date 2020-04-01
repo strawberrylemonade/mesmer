@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getTokenForTalksuite, getOrganisations, getBots, getBot } from '../services/talksuite-client';
+import { getTokenForTalksuite, getOrganisations, getBots, getBot, importDialogues } from '../services/talksuite-client';
 import { verifyAuth } from '../helpers/middleware';
 
 const router = Router();
@@ -39,5 +39,15 @@ router.get('/talksuite/organisations/:organisationId/bots/:botId', verifyAuth, a
   res.status(200);
   res.json(data);
 })
+
+router.post('/talksuite/organisations/:organisationId/import', verifyAuth, async (req, res, next) => {
+  const organisationId = req.params.organisationId;
+  const version = req.query.version;
+  const token = req.header('Authentication');
+
+  await importDialogues(token, organisationId, version);
+  res.status(200);
+  res.json({ status: 'OK' });
+}) 
 
 export default router;

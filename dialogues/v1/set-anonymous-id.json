@@ -1,0 +1,55 @@
+{
+	"id": "Mesmer: setAnonymousId",
+	"trigger": {
+		"type": "nestedDialogue"
+	},
+	"nodes": [
+		{
+			"type": "decision",
+			"rule": {
+				"===": [
+					{
+						"var": "conversation/mesmerAnonymousId"
+					},
+					null
+				]
+			},
+			"failNode": "dialogue.stop"
+		},
+		{
+			"type": "action",
+			"service": {
+				"url": "https://www.uuidgenerator.net/api/version4",
+				"method": "GET",
+				"headers": {
+					"Accept": "application/json"
+				}
+			},
+			"outputs": {
+				"body": {
+					"uuidText": ""
+				}
+			}
+		},
+		{
+			"type": "operation",
+			"operation": {
+				"substr": [
+					{
+						"var": "uuidText"
+					},
+					0,
+					32
+				]
+			},
+			"output": "uuid"
+		},
+		{
+			"type": "operation",
+			"operation": {
+				"var": "uuid"
+			},
+			"output": "conversation/mesmerAnonymousId"
+		}
+	]
+}

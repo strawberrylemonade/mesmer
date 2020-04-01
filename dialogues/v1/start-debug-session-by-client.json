@@ -1,0 +1,24 @@
+{
+	"id": "Mesmer: startDebugSessionByClient",
+	"trigger": {
+		"type": "customEvent",
+		"name": "setUpDebugSession",
+		"output": "debugSession"
+	},
+	"nodes": [
+		{
+			"type": "operation",
+			"operation": {
+				"var": "debugSession/id"
+			},
+			"output": "conversation/mesmerDebugSession"
+		},
+		{
+			"type": "dialogue",
+			"dialogueId": "Mesmer: logEvent",
+			"inputs": {
+				"name": "startedDebugSession"
+			}
+		}
+	]
+}

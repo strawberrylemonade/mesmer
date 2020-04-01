@@ -1,0 +1,121 @@
+{
+	"id": "Mesmer: logEvent",
+	"trigger": {
+		"type": "nestedDialogue"
+	},
+	"nodes": [
+		{
+			"type": "dialogue",
+			"dialogueId": "Mesmer: setAnonymousId"
+		},
+		{
+			"type": "operation",
+			"operation": {
+				"DateTime.currentDateTime": []
+			},
+			"output": "currentDateTime"
+		},
+		{
+			"type": "operation",
+			"operation": {
+				"DateTime.toUTC": [
+					{
+						"var": "currentDateTime"
+					},
+					{
+						"var": "conversation.settings/timeZone"
+					}
+				]
+			},
+			"output": "currentDateTimeUTC"
+		},
+		{
+			"type": "buildObject",
+			"object": {
+				"type": "custom",
+				"anonId": "{conversation/mesmerAnonymousId}",
+				"name": "{name}",
+				"originalTimestamp": "{currentDateTimeUTC}"
+			},
+			"output": "body"
+		},
+		{
+			"type": "decision",
+			"rule": {
+				"!==": [
+					{
+						"var": "data"
+					},
+					null
+				]
+			},
+			"passNode": "doesHaveData",
+			"failNode": "doesNotHaveData"
+		},
+		{
+			"id": "doesHaveData",
+			"type": "operation",
+			"operation": {
+				"var": "data"
+			},
+			"output": "body/context"
+		},
+		{
+			"id": "doesNotHaveData",
+			"type": "decision",
+			"rule": {
+				"!==": [
+					{
+						"var": "conversation/mesmerUserId"
+					},
+					null
+				]
+			},
+			"passNode": "hasUserId",
+			"failNode": "doesNotHaveUserId"
+		},
+		{
+			"id": "hasUserId",
+			"type": "operation",
+			"operation": {
+				"var": "conversation/userId"
+			},
+			"output": "body/userId"
+		},
+		{
+			"id": "doesNotHaveUserId",
+			"type": "decision",
+			"rule": {
+				"!==": [
+					{
+						"var": "conversation/mesmerDebugSession"
+					},
+					null
+				]
+			},
+			"passNode": "isInDebugSession",
+			"failNode": "isNotInDebugSession"
+		},
+		{
+			"id": "isInDebugSession",
+			"type": "operation",
+			"operation": {
+				"var": "conversation/mesmerDebugSession"
+			},
+			"output": "body/debugSession"
+		},
+		{
+			"id": "isNotInDebugSession",
+			"type": "action",
+			"service": {
+				"url": "{bot/mesmerEventURL}",
+				"method": "POST",
+				"headers": {
+					"Accept": "application/json",
+					"Authorization": "Basic {bot/mesmerInsightsKey}"
+				},
+				"body": "{body}"
+			}
+		}
+	]
+}

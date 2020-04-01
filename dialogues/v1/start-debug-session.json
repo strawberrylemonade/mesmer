@@ -1,0 +1,71 @@
+{
+	"id": "Mesmer: startDebugSession",
+	"trigger": {
+		"type": "message",
+		"values": [
+			"Start debug session"
+		]
+	},
+	"nodes": [
+		{
+			"type": "decision",
+			"rule": {
+				"===": [
+					{
+						"var": "conversation/mesmerDebugSession"
+					},
+					null
+				]
+			},
+			"passNode": "getDebugCode"
+		},
+		{
+			"type": "message",
+			"message": "You are already in a debug session.",
+			"nextNode": "dialogue.stop"
+		},
+		{
+			"id": "getDebugCode",
+			"type": "stringPrompt",
+			"message": "Please enter your debug code.",
+			"retryMessage": "Sorry, I didn't get that.",
+			"maxRetries": 1,
+			"output": "debugCode"
+		},
+		{
+			"id": "configureDebugSession",
+			"type": "action",
+			"service": {
+				"url": "{bot/mesmerDebugURL}?code={debugCode}",
+				"method": "GET",
+				"headers": {
+					"Accept": "application/json"
+				}
+			},
+			"outputs": {
+				"body": {
+					"id": "id"
+				}
+			}
+		},
+		{
+			"id": "saveDebugSessionIdToConversation",
+			"type": "operation",
+			"operation": {
+				"var": "id"
+			},
+			"output": "conversation/mesmerDebugSession"
+		},
+		{
+			"type": "dialogue",
+			"dialogueId": "Mesmer: logEvent",
+			"inputs": {
+				"name": "startedDebugSession"
+			}
+		},
+		{
+			"type": "message",
+			"message": "You have successfully started a debug session."
+		}
+	]
+}

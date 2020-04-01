@@ -6,7 +6,7 @@ import { DirectLine, Message } from 'botframework-directlinejs';
 import { getEnvironment } from './environment';
 import { NotFoundError, NoMatchError, CustomError, DatabaseError, MissingParameterError } from '../helpers/errors';
 import { syncOptions } from '../helpers/options';
-import { resolveDiscovery, createConversation, sendMessage, waitForResponse, setUpDebugSession } from '../helpers/directline';
+import { resolveDiscovery, createConversation, sendMessage, waitForResponseById, waitForResponseByExpect, setUpDebugSession, Expect } from '../helpers/directline';
 import log from '../helpers/log';
 import { getProject } from './project';
 import { TestReport, StepReport } from './report';
@@ -21,7 +21,7 @@ export interface ITest {
   name: string
   maxDuration: number
   targetDuration: number
-  steps: Array<(ISendAndWaitStep | ISendAndWaitForStep)>
+  steps: Array<(ISendAndWaitStep | ISendAndWaitForStep | IWaitAndExpectStep)>
 }
 
 class Test extends Model {}
@@ -173,6 +173,9 @@ export const runTest = async (projectId: string, environmentId: string, test: IT
         case 'send&WaitFor':
           await sendAndWaitFor(conversation, step);
           break;
+        case 'wait&Expect':
+          await waitAndExpect(conversation, step);
+          break;
       }
 
       stepReport.stop();
@@ -194,18 +197,28 @@ interface ISendAndWaitStep {
 
 const sendAndWait = async (conversation: DirectLine, step: ISendAndWaitStep) =>  {
   const id = await sendMessage(conversation, step.message);
-  await waitForResponse(conversation, id);        
+  await waitForResponseById(conversation, id);        
 }
 
 interface ISendAndWaitForStep {
   name: string
   type: "send&WaitFor"
   message: string
-  expect: string
+  expect: string | Expect
 }
 
 const sendAndWaitFor = async (conversation: DirectLine, step: ISendAndWaitForStep) =>  {
   const id = await sendMessage(conversation, step.message);
-  const response = await waitForResponse(conversation, id) as Message;   
+  const response = await waitForResponseById(conversation, id) as Message;   
   if (response.text !== step.expect) throw new NoMatchError('Response did not come back as expected.');
+}
+
+interface IWaitAndExpectStep {
+  name: string
+  type: "wait&Expect"
+  expect: string | Expect
+}
+
+const waitAndExpect = async (conversation: DirectLine, step: IWaitAndExpectStep) =>  {
+  await waitForResponseByExpect(conversation, step.expect) as Message;   
 }

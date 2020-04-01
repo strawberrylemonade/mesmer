@@ -1,0 +1,15 @@
+{
+	"id": "Mesmer: setUserId",
+	"trigger": {
+		"type": "nestedDialogue"
+	},
+	"nodes": [
+		{
+			"type": "operation",
+			"operation": {
+				"var": "userId"
+			},
+			"output": "conversation/mesmerUserId"
+		}
+	]
+}

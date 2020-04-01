@@ -1,0 +1,30 @@
+{
+	"id": "Mesmer: endDebugSession",
+	"trigger": {
+		"type": "message",
+		"values": [
+			"End debug session"
+		]
+	},
+	"nodes": [
+		{
+			"type": "dialogue",
+			"dialogueId": "Mesmer: logEvent",
+			"inputs": {
+				"name": "endedDebugSession"
+			}
+		},
+		{
+			"id": "saveDebugSessionIdToConversation",
+			"type": "operation",
+			"operation": {
+				"var": "null"
+			},
+			"output": "conversation/mesmerDebugSession"
+		},
+		{
+			"type": "message",
+			"message": "You have successfully ended the debug session."
+		}
+	]
+}

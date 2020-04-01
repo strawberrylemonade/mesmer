@@ -7,7 +7,7 @@ global.XMLHttpRequest = xhr2;
 //@ts-ignore
 global.WebSocket = ws;
 
-import { DirectLine, Message, Activity, EventActivity } from 'botframework-directlinejs';
+import { DirectLine, Message, EventActivity } from 'botframework-directlinejs';
 import got from 'got';
 
 import log from './log';
@@ -45,7 +45,7 @@ export const createConversation = async (discovery: IDiscovery) => {
     return conversation;
   } catch (e) {
     log(e);
-    throw new BadRequestError('Cannot connection to talksuitre, potentially corrupted discovery information.')
+    throw new BadRequestError('Cannot connection to talksuite, potentially corrupted discovery information.')
   }
 }
 
@@ -75,8 +75,8 @@ export const sendMessage = async (conversation: DirectLine, message: string): Pr
   const id = await conversation.postActivity(activity).toPromise();
   return id;
 }
-export const waitForResponse = (conversation: DirectLine, messageId: string) => {
-  const maxTimout = 30000;
+export const waitForResponseById = (conversation: DirectLine, messageId: string) => {
+  const maxTimeout = 30000;
   
   return new Promise((resolve, reject) => {
     
@@ -93,10 +93,54 @@ export const waitForResponse = (conversation: DirectLine, messageId: string) => 
     setInterval(() => {
       if (subscription.closed) { return }
       subscription.unsubscribe();
-      reject(new BadRequestError(`The response didn't come or took longer than the max timeout: ${maxTimout}`));
-    }, maxTimout);
+      reject(new BadRequestError(`The response didn't come or took longer than the max timeout: ${maxTimeout}`));
+    }, maxTimeout);
   });
 }
+
+export interface Expect {
+  contentType: string,
+  content: {[key: string]: any}
+}
+
+export const isExpected = (activity: Message, expect: Expect | string) => {
+  if (typeof expect === 'string') return activity.text === expect;
+  if (!activity.attachments) return false;
+  return activity.attachments.reduce<boolean>((failed, attachment) => {
+    if (failed) return failed;
+    if (attachment.contentType !== expect.contentType) return true;
+    const contentKeys = Object.keys(expect.content);
+    return contentKeys.reduce<boolean>((failed, key) => {
+      if (failed) return failed;
+      // @ts-ignore
+      return (expect.content[key] === !!(attachment.content[key]));
+    }, false)
+  }, false)
+}
+
+export const waitForResponseByExpect = (conversation: DirectLine, expect: string | Expect) => {
+  const maxTimeout = 30000;
+  
+  return new Promise((resolve, reject) => {
+    
+    const subscription = conversation.activity$
+    // @ts-ignore
+    .filter(activity => activity.type === 'message' && isExpected(activity, expect))
+    .subscribe(
+      (message) => {
+        subscription.unsubscribe();
+        resolve(message as Message);
+      }
+    );
+
+    setInterval(() => {
+      if (subscription.closed) { return }
+      subscription.unsubscribe();
+      reject(new BadRequestError(`The response didn't come or took longer than the max timeout: ${maxTimeout}`));
+    }, maxTimeout);
+  });
+}
+
 
 export const endConversation = async () => { }
 export const setUpDebugSession = async (conversation: DirectLine, projectId: string, environmentId: string) => {
