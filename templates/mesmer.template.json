@@ -146,9 +146,11 @@
       "name": "[variables('apiAppName')]",
       "location": "[resourceGroup().location]",
       "kind": "app",
-      "dependsOn": [],
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]"
+      ],
       "properties": {
-        "serverFarmId": "[resourceId(subscription().SubscriptionId, resourceGroup().name,'Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
         "siteConfig": {
           "linuxFxVersion": "[parameters('linuxFxVersion')]"
         }
