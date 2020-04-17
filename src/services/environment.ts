@@ -88,7 +88,7 @@ export const createEnvironment = async (projectId: string, environment: Partial<
 
 export const getEnvironments = async (projectId: string) => {
   try {
-    const environments = await Environment.findAll({ where: { project: projectId }})
+    const environments = await Environment.findAll({ where: { project: projectId }, order: [['createdAt', 'ASC']]})
     return environments.map(res => res.toJSON()) as IEnvironment[];
   } catch (e) {
     log(e);
@@ -124,9 +124,20 @@ export const getEnvironmentById = async (id: string): Promise<IEnvironment> => {
 
 export const updateEnvironment = async (projectId: string, environmentId: string, candidateEnvironment: Partial<IEnvironment>) => {
   try {
-    const project = await Environment.findOne({ where: { project: projectId, environmentId: environmentId } })
-    await project.update(candidateEnvironment, { fields: ['name', 'connection', 'tests', 'slack'] })
-    return project.toJSON();
+    const environment = await Environment.findOne({ where: { project: projectId, environmentId: environmentId } })
+    await environment.update(candidateEnvironment, { fields: ['name', 'connection', 'tests', 'slack'] })
+    return environment.toJSON();
+  } catch (e) {
+    log(e);
+    throw new DatabaseError('Could not update this project.')
+  }
+}
+
+export const deleteEnvironment = async (projectId: string, environmentId: string) => {
+  try {
+    const environment = await Environment.findOne({ where: { project: projectId, environmentId: environmentId } })
+    if(!environment) throw new NotFoundError('This environment does not exist.');
+    await environment.destroy()
   } catch (e) {
     log(e);
     throw new DatabaseError('Could not update this project.')

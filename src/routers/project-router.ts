@@ -1,6 +1,6 @@
 import { Router } from 'express';
 
-import { createProject, getProject, getProjects, updateProject } from '../services/project';
+import { createProject, getProject, getProjects, updateProject, deleteProject } from '../services/project';
 import log from '../helpers/log';
 import { verifyAuth } from '../helpers/middleware';
 
@@ -55,6 +55,20 @@ router.put('/:projectId', verifyAuth, async (req, res) => {
     const project = await updateProject(projectId, partialProject);
     res.status(200);
     res.json(project);
+  } catch (e) {
+    log(e);
+    res.status(e.code);
+    res.json(e.toJSON());
+  }
+})
+
+router.delete('/:projectId', verifyAuth, async (req, res) => {
+  const projectId = req.params.projectId;
+
+  try {
+    await deleteProject(projectId);
+    res.status(200);
+    res.json({ status: 'OK' });
   } catch (e) {
     log(e);
     res.status(e.code);

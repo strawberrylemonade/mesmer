@@ -142,14 +142,6 @@ export const updateTest = async (projectId: string, testId: string, candidateTes
   }
 }
 
-export const getEnvironmentStatus = async (projectId: string, environmentId: string) => {
-
-}
-
-export const getTestDetails = async (projectId: string, environmentId: string, testId: string) => {
-
-}
-
 export const runTest = async (projectId: string, environmentId: string, test: ITest) => {
   const { connection } = await getEnvironment(projectId, environmentId);
   if (!connection) throw new NotFoundError('This environment does not have any connection details associating it with a bot.');

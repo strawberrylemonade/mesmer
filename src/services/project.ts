@@ -89,3 +89,15 @@ export const updateProject = async (projectId: string, candidateProject: Partial
     throw new DatabaseError('Could not update this project.')
   }
 }
+
+export const deleteProject = async (projectId: string) => {
+  try {
+    const project = await Project.findOne({ where: { id: projectId } })
+    if(!project) throw new NotFoundError('This project does not exist.');
+    return project.destroy();
+  } catch (e) {
+    log(e);
+    if(e instanceof CustomError) throw e;
+    throw new DatabaseError('Could not delete this project.')
+  }
+}

@@ -1,11 +1,12 @@
 import { Router } from 'express';
 
-import { createEnvironment, getEnvironment, getEnvironments, updateEnvironment } from '../services/environment';
-import { getEnvironmentStatus, getTestDetails, runTest } from '../services/test';
+import { createEnvironment, getEnvironment, getEnvironments, updateEnvironment, deleteEnvironment } from '../services/environment';
+import { runTest } from '../services/test';
 import { createEvent, getEventsByDebugSession } from '../services/event';
 import { MissingParameterError } from '../helpers/errors';
 import { verifyAuth } from '../helpers/middleware';
 import log from '../helpers/log';
+import { getEnvironmentStatus } from '../services/report';
 
 const router = Router();
 
@@ -54,6 +55,21 @@ router.get('/:projectId/environments/:environmentId', verifyAuth, async (req, re
   }
 })
 
+router.get('/:projectId/environments/:environmentId', verifyAuth, async (req, res) => {
+  const projectId = req.params.projectId;
+  const environmentId = req.params.environmentId;
+
+  try {
+    await deleteEnvironment(projectId, environmentId);
+    res.status(200);
+    res.json({ status: 'OK' });
+  } catch (e) {
+    log(e);
+    res.status(e.code);
+    res.json(e.toJSON());
+  }
+})
+
 router.put('/:projectId/environments/:environmentId', verifyAuth, async (req, res) => {
   const projectId = req.params.projectId;
   const environmentId = req.params.environmentId;
@@ -76,9 +92,9 @@ router.get('/:projectId/environments/:environmentId/status', verifyAuth, async (
   const environmentId = req.params.environmentId;
 
   try {
-    const events = await getEnvironmentStatus(projectId, environmentId);
+    const status = await getEnvironmentStatus(projectId, environmentId);
     res.status(200);
-    res.json(events);
+    res.json(status);
   } catch (e) {
     log(e);
     res.status(e.code);
@@ -94,22 +110,6 @@ router.post('/:projectId/environments/:environmentId/tests', verifyAuth, async (
     const report = await runTest(projectId, environmentId, req.body);
     res.status(200);
     res.json(report);
-  } catch (e) {
-    log(e);
-    res.status(e.code);
-    res.json(e.toJSON());
-  }
-})
-
-router.get('/:projectId/environments/:environmentId/tests/:testId', verifyAuth, async (req, res) => {
-  const projectId = req.params.projectId;
-  const environmentId = req.params.environmentId;
-  const testId = req.params.testId;
-  
-  try {
-    const test = await getTestDetails(projectId, environmentId, testId);
-    res.status(200);
-    res.json(test);
   } catch (e) {
     log(e);
     res.status(e.code);

@@ -4,7 +4,7 @@ const sequelize = new Sequelize(process.env['PGDATABASE'], process.env['PGUSER']
   host: process.env['PGHOST'],
   dialect: 'postgres',
   dialectOptions: {
-    ssl: true
+    ssl: process.env['PGHOST'] !== 'localhost'
   }
 });
 

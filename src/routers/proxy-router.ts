@@ -35,7 +35,7 @@ router.get('/talksuite/organisations/:organisationId/bots/:botId', verifyAuth, a
   const botId = req.params.botId;
   const token = req.header('Authentication');
 
-  const data = await getBot(token, organisationId, botId);
+  const [data] = await getBot(token, organisationId, botId);
   res.status(200);
   res.json(data);
 })

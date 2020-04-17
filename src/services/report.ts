@@ -9,7 +9,7 @@ import { syncOptions } from '../helpers/options';
 import { getEventsByDebugSession, IEvent } from './event';
 
 
-enum ReportStatus {
+export enum ReportStatus {
   Good = 'Good',
   Poor = 'Poor',
   Bad = 'Bad'
@@ -209,4 +209,29 @@ export const getRecentReports = async (projectId: string, environmentId: string)
   const response = await Report.findAll({ where: { environment: environmentId, project: projectId, createdAt: { [Op.lt]: new Date(), [Op.gt]: new Date().setTime(new Date().getTime() - 24 * 60 * 60 * 1000) }}, limit: 40, order: [['createdAt', 'DESC']] });
   if(!response) throw new NotFoundError('These reports do not exist.');
   return response.map(res => res.toJSON()).reverse() as IReport[];
+}
+
+export const getEnvironmentStatus = async (projectId: string, environmentId: string) => {
+  if (!environmentId) throw new MissingParameterError('environment');
+  if (!projectId) throw new MissingParameterError('project');
+
+  const response = await Report.findAll({ where: { environment: environmentId, project: projectId, createdAt: { [Op.lt]: new Date(), [Op.gt]: new Date().setTime(new Date().getTime() - 45 * 60 * 1000) }} });
+  const reports = response.map(res => res.toJSON()) as IReport[];
+  const status = reports.reduce<ReportStatus>((status, report) => {
+    // If another report is bad, always return bad.
+    if (status === ReportStatus.Bad) return ReportStatus.Bad;
+    // If this report is bad, return bad.
+    if (report.status === ReportStatus.Bad) return ReportStatus.Bad;
+
+    // If another report is poor, always return poor.
+    if (status === ReportStatus.Poor) return ReportStatus.Poor;
+    // If this report is poor, return poor.
+    if (report.status === ReportStatus.Poor) return ReportStatus.Poor;
+
+    // Default is always good.
+    return status;
+  },
+  // Start with the status as good
+  ReportStatus.Good);
+  return { status }
 }

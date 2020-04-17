@@ -19,6 +19,7 @@ export interface IEvent {
   type: string
   name: string
   state?: String
+  critical?: boolean
 
   // User Identity
   anonId: string
