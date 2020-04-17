@@ -1,6 +1,6 @@
 import { Router } from 'express';
 
-import { getTestDetails, runTest, createTest, getTest, getTests, updateTest } from '../services/test';
+import { runTest, createTest, getTest, getTests, updateTest } from '../services/test';
 import { MissingParameterError } from '../helpers/errors';
 import log from '../helpers/log';
 import { verifyAuth } from '../helpers/middleware';
