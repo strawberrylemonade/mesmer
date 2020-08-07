@@ -8,7 +8,7 @@ import { verifyAuth } from '../helpers/middleware';
 
 const router = Router();
 
-router.post('/:projectId/tests', verifyAuth, async (req, res) => {
+router.post('/:projectId/tests', async (req, res) => {
   const projectId = req.params.projectId;
   
   try {
@@ -22,7 +22,7 @@ router.post('/:projectId/tests', verifyAuth, async (req, res) => {
   }
 })
 
-router.put('/:projectId/tests/:testId', verifyAuth, async (req, res) => {
+router.put('/:projectId/tests/:testId', async (req, res) => {
   const projectId = req.params.projectId;
   const testId = req.params.testId;
   
@@ -37,7 +37,7 @@ router.put('/:projectId/tests/:testId', verifyAuth, async (req, res) => {
   }
 })
 
-router.post('/:projectId/environments/:environmentId/tests/:testId/run', verifyAuth, async (req, res) => {
+router.post('/:projectId/environments/:environmentId/tests/:testId/run', async (req, res) => {
   const projectId = req.params.projectId;
   const environmentId = req.params.environmentId;
   const testId = req.params.testId;
@@ -54,7 +54,7 @@ router.post('/:projectId/environments/:environmentId/tests/:testId/run', verifyA
   }
 })
 
-router.post('/:projectId/tests/run', verifyAuth, async (req, res) => {
+router.post('/:projectId/tests/run', async (req, res) => {
   const projectId = req.params.projectId;
   const environmentId = req.params.environmentId;
   
@@ -69,7 +69,7 @@ router.post('/:projectId/tests/run', verifyAuth, async (req, res) => {
   }
 })
 
-router.get('/:projectId/tests', verifyAuth, async (req, res) => {
+router.get('/:projectId/tests', async (req, res) => {
   const projectId = req.params.projectId;
   
   try {
@@ -83,7 +83,7 @@ router.get('/:projectId/tests', verifyAuth, async (req, res) => {
   }
 })
 
-router.get('/:projectId/tests/:testId', verifyAuth, async (req, res) => {
+router.get('/:projectId/tests/:testId', async (req, res) => {
   const projectId = req.params.projectId;
   const testId = req.params.testId;
   

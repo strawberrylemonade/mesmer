@@ -6,7 +6,7 @@ import { verifyAuth } from '../helpers/middleware';
 
 const router = Router();
 
-router.get('/', verifyAuth, async (req, res) => {
+router.get('/', async (req, res) => {
   try {
     const projects = await getProjects();
     res.status(200);
@@ -18,7 +18,7 @@ router.get('/', verifyAuth, async (req, res) => {
   }
 })
 
-router.post('/', verifyAuth, async (req, res) => {
+router.post('/', async (req, res) => {
   const newProject = req.body;
 
   try {
@@ -32,7 +32,7 @@ router.post('/', verifyAuth, async (req, res) => {
   }
 })
 
-router.get('/:projectId', verifyAuth, async (req, res) => {
+router.get('/:projectId', async (req, res) => {
   const projectId = req.params.projectId;
 
   try {
@@ -46,7 +46,7 @@ router.get('/:projectId', verifyAuth, async (req, res) => {
   }
 })
 
-router.put('/:projectId', verifyAuth, async (req, res) => {
+router.put('/:projectId', async (req, res) => {
   const projectId = req.params.projectId;
 
   const partialProject = req.body;
@@ -62,7 +62,7 @@ router.put('/:projectId', verifyAuth, async (req, res) => {
   }
 })
 
-router.delete('/:projectId', verifyAuth, async (req, res) => {
+router.delete('/:projectId', async (req, res) => {
   const projectId = req.params.projectId;
 
   try {

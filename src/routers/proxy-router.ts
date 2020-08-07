@@ -4,7 +4,7 @@ import { verifyAuth } from '../helpers/middleware';
 
 const router = Router();
 
-router.post('/talksuite/login', verifyAuth, async (req, res, next) => {
+router.post('/talksuite/login', async (req, res, next) => {
   const username = req.body?.username;
   const password = req.body?.password;
 
@@ -13,7 +13,7 @@ router.post('/talksuite/login', verifyAuth, async (req, res, next) => {
   res.json(token);
 })
 
-router.get('/talksuite/organisations', verifyAuth, async (req, res, next) => {
+router.get('/talksuite/organisations', async (req, res, next) => {
   const token = req.header('Authentication');
 
   const organisations = await getOrganisations(token);
@@ -21,7 +21,7 @@ router.get('/talksuite/organisations', verifyAuth, async (req, res, next) => {
   res.json(organisations);
 })
 
-router.get('/talksuite/organisations/:organisationId/bots', verifyAuth, async (req, res, next) => {
+router.get('/talksuite/organisations/:organisationId/bots', async (req, res, next) => {
   const organisationId = req.params.organisationId;
   const token = req.header('Authentication');
 
@@ -30,7 +30,7 @@ router.get('/talksuite/organisations/:organisationId/bots', verifyAuth, async (r
   res.json(data);
 })
 
-router.get('/talksuite/organisations/:organisationId/bots/:botId', verifyAuth, async (req, res, next) => {
+router.get('/talksuite/organisations/:organisationId/bots/:botId', async (req, res, next) => {
   const organisationId = req.params.organisationId;
   const botId = req.params.botId;
   const token = req.header('Authentication');
@@ -40,7 +40,7 @@ router.get('/talksuite/organisations/:organisationId/bots/:botId', verifyAuth, a
   res.json(data);
 })
 
-router.post('/talksuite/organisations/:organisationId/import', verifyAuth, async (req, res, next) => {
+router.post('/talksuite/organisations/:organisationId/import', async (req, res, next) => {
   const organisationId = req.params.organisationId;
   const version = req.query.version;
   const token = req.header('Authentication');

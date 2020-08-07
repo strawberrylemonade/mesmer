@@ -5,7 +5,7 @@ import { verifyAuth } from '../helpers/middleware';
 
 const router = Router()
 
-router.get('/:projectId/environments/:environmentId/reports/recents', verifyAuth, async (req, res, next) => {
+router.get('/:projectId/environments/:environmentId/reports/recents', async (req, res, next) => {
   const projectId = req.params.projectId;
   const environmentId = req.params.environmentId;
 
@@ -20,7 +20,7 @@ router.get('/:projectId/environments/:environmentId/reports/recents', verifyAuth
   }
 })
 
-router.get('/:projectId/environments/:environmentId/reports/recent', verifyAuth, async (req, res, next) => {
+router.get('/:projectId/environments/:environmentId/reports/recent', async (req, res, next) => {
   const projectId = req.params.projectId;
   const environmentId = req.params.environmentId;
 
@@ -35,7 +35,7 @@ router.get('/:projectId/environments/:environmentId/reports/recent', verifyAuth,
   }
 })
 
-router.get('/:projectId/environments/:environmentId/reports/:reportId', verifyAuth, async (req, res, next) => {
+router.get('/:projectId/environments/:environmentId/reports/:reportId', async (req, res, next) => {
   const projectId = req.params.projectId;
   const environmentId = req.params.environmentId;
   const reportId = req.params.reportId;

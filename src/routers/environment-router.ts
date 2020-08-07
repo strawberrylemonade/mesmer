@@ -10,7 +10,7 @@ import { getEnvironmentStatus } from '../services/report';
 
 const router = Router();
 
-router.get('/:projectId/environments/', verifyAuth, async (req, res) => {
+router.get('/:projectId/environments/', async (req, res) => {
   const projectId = req.params.projectId;
 
   try {
@@ -24,7 +24,7 @@ router.get('/:projectId/environments/', verifyAuth, async (req, res) => {
   }
 })
 
-router.post('/:projectId/environments/', verifyAuth, async (req, res) => {
+router.post('/:projectId/environments/', async (req, res) => {
   const projectId = req.params.projectId;
   
   const partialEnvironment = req.body;
@@ -40,7 +40,7 @@ router.post('/:projectId/environments/', verifyAuth, async (req, res) => {
   }
 })
 
-router.get('/:projectId/environments/:environmentId', verifyAuth, async (req, res) => {
+router.get('/:projectId/environments/:environmentId', async (req, res) => {
   const projectId = req.params.projectId;
   const environmentId = req.params.environmentId;
 
@@ -55,7 +55,7 @@ router.get('/:projectId/environments/:environmentId', verifyAuth, async (req, re
   }
 })
 
-router.get('/:projectId/environments/:environmentId', verifyAuth, async (req, res) => {
+router.get('/:projectId/environments/:environmentId', async (req, res) => {
   const projectId = req.params.projectId;
   const environmentId = req.params.environmentId;
 
@@ -70,7 +70,7 @@ router.get('/:projectId/environments/:environmentId', verifyAuth, async (req, re
   }
 })
 
-router.put('/:projectId/environments/:environmentId', verifyAuth, async (req, res) => {
+router.put('/:projectId/environments/:environmentId', async (req, res) => {
   const projectId = req.params.projectId;
   const environmentId = req.params.environmentId;
 
@@ -87,7 +87,7 @@ router.put('/:projectId/environments/:environmentId', verifyAuth, async (req, re
   }
 })
 
-router.get('/:projectId/environments/:environmentId/status', verifyAuth, async (req, res) => {
+router.get('/:projectId/environments/:environmentId/status', async (req, res) => {
   const projectId = req.params.projectId;
   const environmentId = req.params.environmentId;
 
@@ -102,7 +102,7 @@ router.get('/:projectId/environments/:environmentId/status', verifyAuth, async (
   }
 })
 
-router.post('/:projectId/environments/:environmentId/tests', verifyAuth, async (req, res) => {
+router.post('/:projectId/environments/:environmentId/tests', async (req, res) => {
   const projectId = req.params.projectId;
   const environmentId = req.params.environmentId;
   

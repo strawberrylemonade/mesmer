@@ -16,7 +16,7 @@ interface CacheRegistration {
 
 const SocketCache: {[key: string]: CacheRegistration[]} = {} 
 
-router.post('/:projectId/environments/:environmentId/debug', verifyAuth, async (req, res) => {
+router.post('/:projectId/environments/:environmentId/debug', async (req, res) => {
   const projectId = req.params.projectId;
   const environmentId = req.params.environmentId;
   
@@ -47,7 +47,7 @@ router.get('/:projectId/environments/:environmentId/debug', async (req, res) => 
   }
 })
 
-router.get('/:projectId/environments/:environmentId/debug/:debugId', verifyAuth, async (req, res) => {
+router.get('/:projectId/environments/:environmentId/debug/:debugId', async (req, res) => {
   const projectId = req.params.projectId;
   const environmentId = req.params.environmentId;
   const debugId = req.params.debugId;
